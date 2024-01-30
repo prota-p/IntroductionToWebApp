@@ -1,0 +1,11 @@
+{
+  "profiles": {
+    "MailConsoleSender": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "GMAIL_ADDRESS": "★送信元メールアドレス",
+        "GMAIL_APP_PASSWORD": "★アプリパスワード"
+      }
+    }
+  }
+}
