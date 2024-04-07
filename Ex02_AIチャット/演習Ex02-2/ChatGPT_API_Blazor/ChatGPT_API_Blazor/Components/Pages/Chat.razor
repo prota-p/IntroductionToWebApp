@@ -1,0 +1,40 @@
+﻿@page "/chat"
+@using ChatGPT_API_Blazor.Services
+@rendermode InteractiveServer
+@inject ChatGPTService chatGPTService;
+
+<h3>ChatGPT Chat</h3>
+
+<div class="chat-input">
+    <input @bind="_userInput" class="input-text" placeholder="Type your message here..." />
+    <button @onclick="SendQuery" class="send-button">Send</button>
+</div>
+
+<div class="chat-messages">
+    @if (_messages != null)
+    {
+        <div>
+            @foreach (var message in _messages)
+            {
+                <div class="message">@message</div>
+                <hr>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private string _userInput;
+    private List<string> _messages = new();
+
+    private async Task SendQuery()
+    {
+        if (!string.IsNullOrWhiteSpace(_userInput))
+        {
+            _messages.Add($"You: {_userInput}");
+            var response = await chatGPTService.AskGPT4(_userInput);
+            _messages.Add($"ChatGPT: {response}");
+            _userInput = "";
+            StateHasChanged();        }
+    }
+}

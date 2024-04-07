@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "ChatGPT_API_Console": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "GPT_APIKEY": "★APIキー"
+      }
+    }
+  }
+}
