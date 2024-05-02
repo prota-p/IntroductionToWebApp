@@ -1,0 +1,27 @@
+﻿@page "/todolist"
+@rendermode InteractiveServer
+@using TodoListApp.Models
+@using TodoListApp.Services
+@inject TodoListService _todoService
+
+<PageTitle>TodoList</PageTitle>
+
+<h1>Todo List</h1>
+
+<ul>
+    @foreach (var item in _todoItems)
+    {
+        <li>
+            <span>Id:@item.Id, @item.Title</span>
+        </li>
+    }
+</ul>
+
+@code {
+    private List<TodoItem> _todoItems = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        _todoItems = await _todoService.GetTodosAsync();
+    }
+}
