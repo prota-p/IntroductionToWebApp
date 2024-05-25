@@ -1,0 +1,79 @@
+﻿@page "/todolist"
+@rendermode InteractiveServer
+@using TodoListApp.Components.Shared
+@using TodoListApp.Models
+@using TodoListApp.Services
+@inject TodoListService _todoService
+
+<PageTitle>TodoList</PageTitle>
+
+<h1>Todo List</h1>
+
+<ul>
+    @foreach (var todoItem in _todoItems)
+    {
+        <li>
+            <span>Id: @todoItem.Id, @todoItem.Title</span>&nbsp;
+            @if (_editingTodoItem != null && _editingTodoItem.Id == todoItem.Id)
+            {
+                <TodoItemEditor TodoItem="_editingTodoItem" OnSubmit="UpdateTodoAsync" Placeholder="Edit title" ButtonText="Save" />
+            }
+            else
+            {
+                <button @onclick="() => EnterEditMode(todoItem)">Edit</button>
+            }
+            &nbsp;
+            <button @onclick="() => DeleteTodoAsync(todoItem.Id)">Delete</button>
+        </li>
+    }
+</ul>
+
+<TodoItemEditor TodoItem="_newTodoItem" OnSubmit="AddTodoAsync" Placeholder="New todo title" ButtonText="Add" />
+
+@code {
+    private List<TodoItem> _todoItems = new();
+    private TodoItem _newTodoItem = new TodoItem();
+    private TodoItem? _editingTodoItem;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await ReloadTodosAsync();
+    }
+
+    private async Task ReloadTodosAsync()
+    {
+        _todoItems = await _todoService.GetTodosAsync();
+    }
+
+    private void EnterEditMode(TodoItem todoItem)
+    {
+        _editingTodoItem = new TodoItem
+            {
+                Id = todoItem.Id,
+                Title = todoItem.Title
+            };
+    }
+
+    private async Task UpdateTodoAsync()
+    {
+        if (_editingTodoItem != null)
+        {
+            await _todoService.UpdateTodoAsync(_editingTodoItem);
+            _editingTodoItem = null;
+            await ReloadTodosAsync();
+        }
+    }
+
+    private async Task DeleteTodoAsync(int id)
+    {
+        await _todoService.DeleteTodoAsync(id);
+        await ReloadTodosAsync();
+    }
+
+    private async Task AddTodoAsync()
+    {
+        await _todoService.AddTodoAsync(_newTodoItem);
+        _newTodoItem = new TodoItem();
+        await ReloadTodosAsync();
+    }
+}

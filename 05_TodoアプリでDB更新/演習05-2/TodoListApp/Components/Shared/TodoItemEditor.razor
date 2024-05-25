@@ -1,0 +1,11 @@
+﻿@using TodoListApp.Models
+
+<input @bind="TodoItem.Title" placeholder="@Placeholder" />
+<button @onclick="OnSubmit">@ButtonText</button>
+
+@code {
+    [Parameter] public TodoItem TodoItem { get; set; } = new TodoItem();
+    [Parameter] public string ButtonText { get; set; } = "Submit";
+    [Parameter] public string Placeholder { get; set; } = "";
+    [Parameter] public Func<Task> OnSubmit { get; set; } = () => Task.CompletedTask;
+}
