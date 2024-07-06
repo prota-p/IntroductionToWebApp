@@ -1,0 +1,116 @@
+﻿@page "/todolist"
+@rendermode InteractiveServer
+@using Microsoft.AspNetCore.Identity
+@using TodoListApp.Components.Shared
+@using TodoListApp.Data
+@using TodoListApp.Models
+@using TodoListApp.Services
+@inject AuthenticationStateProvider _authenticationStateProvider
+@inject UserManager<ApplicationUser> _userManager
+@inject TodoListService _todoService
+
+<PageTitle>TodoList</PageTitle>
+
+<h1>Todo List</h1>
+
+@if(IsAuthenticated){
+    <p>@_userName (Authenticated)</p>
+    <ul>
+        @foreach (var todoItem in _todoItems)
+        {
+            <li>
+                <span>Id: @todoItem.Id, @todoItem.Title</span>&nbsp;
+                @if (_editingTodoItem != null && _editingTodoItem.Id == todoItem.Id)
+                {
+                    <TodoItemEditor TodoItem="_editingTodoItem" OnSubmit="UpdateTodoAsync" Placeholder="Edit title" ButtonText="Save" />
+                }
+                else
+                {
+                    <button @onclick="() => EnterEditMode(todoItem)">Edit</button>
+                }
+                &nbsp;
+                <button @onclick="() => DeleteTodoAsync(todoItem.Id)">Delete</button>
+            </li>
+        }
+    </ul>
+
+    <TodoItemEditor TodoItem="_newTodoItem" OnSubmit="AddTodoAsync" Placeholder="New todo title" ButtonText="Add" />
+}
+else
+{
+    <p>Not authenticated</p>
+}
+
+@code {
+    private List<TodoItem> _todoItems = new();
+    private TodoItem? _newTodoItem;
+    private TodoItem? _editingTodoItem;
+    private string _userId = string.Empty;
+    private string _userName = string.Empty;
+
+    private bool IsAuthenticated => !string.IsNullOrEmpty(_userId);
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await _authenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity?.IsAuthenticated == true)
+        {
+            _userId = _userManager.GetUserId(user) ?? string.Empty;
+            _userName = user.Identity.Name ?? string.Empty;
+            if (IsAuthenticated)
+            {
+                CreateNewTodo();
+                await ReloadTodosAsync();
+            }
+        }
+    }
+
+    private void CreateNewTodo()
+    {
+        _newTodoItem = new TodoItem { UserId = _userId };
+    }
+
+    private async Task ReloadTodosAsync()
+    {
+        _todoItems = await _todoService.GetTodosAsync(_userId);
+
+    }
+
+    private void EnterEditMode(TodoItem todoItem)
+    {
+        _editingTodoItem = new TodoItem
+            {
+                Id = todoItem.Id,
+                Title = todoItem.Title,
+                UserId = todoItem.UserId
+            };
+    }
+
+    private async Task UpdateTodoAsync()
+    {
+        if (_editingTodoItem != null)
+        {
+            await _todoService.UpdateTodoAsync(_userId, _editingTodoItem);
+            _editingTodoItem = null;
+            await ReloadTodosAsync();
+        }
+    }
+
+    private async Task DeleteTodoAsync(int todoId)
+    {
+        await _todoService.DeleteTodoAsync(_userId, todoId);
+        await ReloadTodosAsync();
+    }
+
+    private async Task AddTodoAsync()
+    {
+        if(_newTodoItem != null)
+        {
+            await _todoService.AddTodoAsync(_userId, _newTodoItem);
+            CreateNewTodo();
+            await ReloadTodosAsync();
+        }
+    }
+}
