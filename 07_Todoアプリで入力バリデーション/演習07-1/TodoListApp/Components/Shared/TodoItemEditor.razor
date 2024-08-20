@@ -1,0 +1,15 @@
+﻿@using TodoListApp.Models
+
+<EditForm Model="@TodoItem" OnValidSubmit="OnSubmit" style="display: inline">
+    <DataAnnotationsValidator />
+    <InputText @bind-Value="TodoItem.Title" placeholder="@Placeholder" />
+    <ValidationMessage For="@(() => TodoItem.Title)" style="display: inline"/>
+    <button type="submit">@ButtonText</button>
+</EditForm>
+
+@code {
+    [Parameter] public TodoItem TodoItem { get; set; } = new TodoItem();
+    [Parameter] public string ButtonText { get; set; } = "Submit";
+    [Parameter] public string Placeholder { get; set; } = "";
+    [Parameter] public Func<Task> OnSubmit { get; set; } = () => Task.CompletedTask;
+}
